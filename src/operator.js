@@ -1,11 +1,11 @@
-import { stream, STREAM, STOP } from "./stream";
+import { stream, STREAM, STOP, RESET } from "./stream";
 
 const wrapStream = (op, args, streamIn$) => {
   const stream$ = streamIn$ || args.pop();
   const valueStream$ = stream();
   let outStream$;
   stream$.on(value => {
-    if (value !== STOP) {
+    if (value !== STOP && value !== RESET) {
       valueStream$(value);
     } else {
       outStream$(value);

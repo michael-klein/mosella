@@ -1,16 +1,20 @@
-import { stream } from "./stream";
+import { stream, RESET, STOP } from "./stream";
 export const combine = (...streams$) => {
   const values = Array(streams$.length).fill(undefined);
-  const newStream$ = stream();
 
   streams$.forEach((stream$, index) => {
     values[index] = stream$();
   });
-  newStream$(values);
+
+  const newStream$ = stream(values);
   streams$.forEach((stream$, index) => {
     stream$.on(value => {
-      values[index] = value;
-      newStream$(values);
+      if (value === RESET || value === STOP) {
+        newStream$(value);
+      } else {
+        values[index] = value;
+        newStream$([...values]);
+      }
     });
   });
   return newStream$;

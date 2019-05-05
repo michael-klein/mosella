@@ -1,11 +1,13 @@
 export const STREAM = Symbol("stream");
 export const STOP = Symbol("stop");
+export const RESET = Symbol("reset");
 export const stream = currentValue => {
   const listeners = [];
   let queuedValues = [];
   if (currentValue !== undefined) {
     queuedValues.push(currentValue);
   }
+  const initialValue = currentValue;
   let emitPromise;
 
   const emit = (value, listeners) => {
@@ -42,13 +44,17 @@ export const stream = currentValue => {
   };
 
   const stream$ = function(value) {
-    if (currentValue !== STOP) {
+    if (currentValue !== STOP && value !== undefined) {
       if (value !== undefined) {
         currentValue = value;
       }
+      if (value === RESET) {
+        currentValue = initialValue;
+        queuedValues = [];
+      }
       if (listeners.length > 0) {
         queueEmit(value, listeners);
-      } else {
+      } else if (value !== RESET) {
         queuedValues.push(value);
       }
       if (value === STOP) {
@@ -76,6 +82,10 @@ export const stream = currentValue => {
 
   stream$.stop = () => {
     stream$(STOP);
+  };
+
+  stream$.reset = () => {
+    stream$(RESET);
   };
 
   stream$.hasListeners = () => listeners.length > 0;
