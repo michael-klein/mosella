@@ -6,10 +6,9 @@ export const stream = currentValue => {
   if (currentValue !== undefined) {
     queuedValues.push(currentValue);
   }
-  let emitPromise = Promise.resolve();
+  let emitPromise;
 
   const emit = (value, listeners) => {
-    listeners = [...listeners];
     const doEmit = () => {
       if (listeners.length > 0) {
         const result = listeners.shift()(value);
@@ -22,13 +21,33 @@ export const stream = currentValue => {
     return doEmit();
   };
 
+  const queueEmit = (value, listeners) => {
+    listeners = [...listeners];
+    let promise;
+    const callEmit = () => {
+      if (emitPromise === promise) {
+        emitPromise = undefined;
+      }
+      const result = emit(value, listeners);
+      if (result instanceof Promise) {
+        emitPromise = result;
+      }
+    };
+    if (emitPromise) {
+      promise = emitPromise.then(callEmit);
+      emitPromise = promise;
+    } else {
+      callEmit();
+    }
+  };
+
   const stream$ = function(value) {
     if (currentValue !== STOP) {
       if (value !== undefined) {
         currentValue = value;
       }
       if (listeners.length > 0) {
-        emitPromise = emitPromise.then(() => emit(value, listeners));
+        queueEmit(value, listeners);
       } else {
         queuedValues.push(value);
       }
@@ -45,7 +64,7 @@ export const stream = currentValue => {
       listeners.push(listener);
       if (queuedValues.length > 0) {
         queuedValues = queuedValues.filter(value => {
-          emitPromise = emitPromise.then(() => emit(value, listeners));
+          queueEmit(value, listeners);
           return false;
         });
       }
