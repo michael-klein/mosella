@@ -1,6 +1,6 @@
-export const STREAM = Symbol("stream");
-export const STOP = Symbol("stop");
-export const RESET = Symbol("reset");
+export const STREAM = "MOSELLA_STREAM";
+export const STOP = "MOSELLA_STOP";
+export const RESET = "MOSELLA_RESET";
 export const stream = currentValue => {
   const listeners = [];
   let queuedValues = [];

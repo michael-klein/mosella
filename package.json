@@ -1,6 +1,6 @@
 {
   "name": "mosella",
-  "version": "1.0.87",
+  "version": "1.0.88",
   "description": "Tiny reactive JavaScript streams!",
   "main": "src/index.js",
   "module": "dist/mosella.mjs",
